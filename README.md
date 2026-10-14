@@ -1,1 +1,3 @@
 # infosoc
+Integrantes
+Bastian Herrera
