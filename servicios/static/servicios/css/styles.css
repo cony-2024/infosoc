@@ -193,3 +193,12 @@ a { color: inherit; }
 }
 
 .pie a { color: var(--taupe); }
+
+.mapa {
+  display: block;
+  width: 100%;
+  height: 360px;
+  margin: 1.5rem 0;
+  border: 2px solid var(--taupe);
+  border-radius: 1rem;
+}
