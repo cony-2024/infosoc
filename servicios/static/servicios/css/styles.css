@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; margin: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 
 body {
   background: var(--blanco-hueso);
@@ -31,6 +31,9 @@ a { color: inherit; }
 
 /* ===== Barra superior ===== */
 .barra {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
