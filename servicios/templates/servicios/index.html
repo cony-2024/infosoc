@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beauty Corner | Manicure y pedicure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'servicios/css/styles.css' %}">
+</head>
+<body>
+
+  <header class="barra">
+    <a class="marca" href="#inicio" aria-label="Beauty Corner, inicio">
+      <img src="{% static 'servicios/img/logo.png' %}" alt="Beauty Corner, manos y pies" width="56" height="56">
+    </a>
+    <nav>
+      <a href="#servicios">Servicios</a>
+      <a href="#ubicacion">Ubicación</a>
+      <a class="boton boton-chico">Reservar</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="portada" id="inicio">
+      <div class="portada-texto">
+        <h1>Manicure y pedicure con más de 1.000 clientas felices</h1>
+        <p>Especialistas en manicure rusa, kapping, soft gel y extensiones. Reserva tu hora por WhatsApp y cuéntanos qué diseño quieres.</p>
+        <a class="boton">Reservar por WhatsApp</a>
+      </div>
+      <img class="logo-portada" src="{% static 'servicios/img/logo.png' %}" alt="" width="150" height="150">
+    </section>
+
+    <section class="servicios" id="servicios">
+      <h2>Nuestros servicios</h2>
+      <p class="nota">Pregunta por precios y promociones por WhatsApp o en nuestro Instagram.</p>
+
+      <div class="grupos">
+        <div class="grupo">
+          <h3>Manos</h3>
+          <ul>
+            <li>Manicure rusa</li>
+            <li>Kapping</li>
+            <li>Soft gel</li>
+            <li>Extensiones</li>
+          </ul>
+        </div>
+        <div class="grupo">
+          <h3>Pies</h3>
+          <ul>
+            <li>Pedicure</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="ubicacion" id="ubicacion">
+      <h2>Dónde estamos</h2>
+      <p>Balmaceda 1602, La Serena</p>
+      <p>Horario: por definir</p>
+    </section>
+  </main>
+
+  <footer class="pie" id="contacto">
+    <p class="pie-marca">Beauty Corner</p>
+    <p>Manos y pies</p>
+    <p>
+      <a>WhatsApp</a> &nbsp;|&nbsp;
+      <a href="https://www.instagram.com/beautycornerlaserena/">Instagram @beautycornerlaserena</a>
+    </p>
+  </footer>
+
+</body>
+</html>
