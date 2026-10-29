@@ -1,0 +1,23 @@
+{% extends "servicios/base.html" %}
+{% load static %}
+{% block titulo %}Gestión diaria | Beauty Corner{% endblock %}
+{% block contenido %}
+<section class="gestion" id="gestion">
+  <h1>Agenda del día</h1>
+  <div class="barra-dia">
+    <button class="boton boton-chico" id="ayer" aria-label="Día anterior">←</button>
+    <input type="date" id="fecha" aria-label="Fecha">
+    <button class="boton boton-chico" id="manana" aria-label="Día siguiente">→</button>
+    <button class="boton boton-chico" id="hoy">Hoy</button>
+  </div>
+  <p id="resumen-dia" class="nota"></p>
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead><tr><th>Hora</th><th>Cliente</th><th>Servicio</th><th>Profesional</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="citas"><tr><td colspan="6">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+  <p><a href="/admin/servicios/">Gestionar servicios, profesionales y horarios →</a></p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'servicios/js/gestion.js' %}"></script>{% endblock %}

@@ -1,59 +1,60 @@
-from datetime import datetime, timedelta
+import json
+from datetime import date, timedelta
 
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Cita, Cliente, HorarioTrabajo, Profesional, Servicio
+
+def proximo_lunes():
+    d = timezone.localdate() + timedelta(days=1)
+    while d.weekday() != 0:
+        d += timedelta(days=1)
+    return d
 
 
-class CitaValidationTests(TestCase):
+class ApiAgendaTests(TestCase):
     def setUp(self):
-        self.servicio = Servicio.objects.create(
-            nombre="Corte",
-            precio="10000.00",
-            duracion_minutos=60,
-        )
-        self.profesional = Profesional.objects.create(nombre="Ana", rut="11111111-1")
-        self.profesional.servicios.add(self.servicio)
-        self.cliente = Cliente.objects.create(nombre="Luis", rut="22222222-2")
-        HorarioTrabajo.objects.create(
-            profesional=self.profesional,
-            dia=0,
-            hora_entrada="09:00",
-            hora_salida="17:00",
-        )
-        self.inicio = timezone.make_aware(datetime(2026, 10, 26, 10, 0))
+        call_command("seed_demo", verbosity=0)
+        self.fecha = proximo_lunes().isoformat()
 
-    def crear_cita(self, inicio=None, fin=None):
-        inicio = inicio or self.inicio
-        fin = fin or inicio + timedelta(minutes=self.servicio.duracion_minutos)
-        return Cita(
-            cliente=self.cliente,
-            profesional=self.profesional,
-            servicio=self.servicio,
-            inicio=inicio,
-            fin=fin,
-        )
+    def _horas(self, **extra):
+        r = self.client.get("/api/disponibilidad/", {"servicio": 1, "fecha": self.fecha, **extra})
+        self.assertEqual(r.status_code, 200)
+        return r.json()["horas"]
 
-    def test_acepta_cita_dentro_del_horario(self):
-        self.crear_cita().full_clean()
+    def _reservar(self, hora, prof, rut="1-9"):
+        return self.client.post("/api/citas/", json.dumps({
+            "servicio": 1, "profesional": prof, "inicio": hora["inicio"],
+            "cliente": {"nombre": "Ana", "rut": rut, "telefono": "9"}}), content_type="application/json")
 
-    def test_rechaza_cita_fuera_del_horario(self):
-        inicio = timezone.make_aware(datetime(2026, 10, 26, 16, 30))
-        with self.assertRaises(ValidationError):
-            self.crear_cita(inicio=inicio).full_clean()
+    def test_catalogo_y_horas(self):
+        self.assertEqual(len(self.client.get("/api/servicios/").json()["servicios"]), 5)
+        horas = self._horas()
+        self.assertEqual(horas[0]["hora"], "10:00")
+        self.assertEqual(len(horas[0]["profesionales"]), 2)
 
-    def test_rechaza_cita_si_profesional_no_ofrece_servicio(self):
-        self.profesional.servicios.clear()
-        with self.assertRaises(ValidationError):
-            self.crear_cita().full_clean()
+    def test_reserva_quita_hora_y_evita_doble_reserva(self):
+        h = self._horas()[0]
+        p1, p2 = h["profesionales"]
+        self.assertEqual(self._reservar(h, p1).status_code, 201)
+        self.assertEqual(self._reservar(h, p1, "2-7").status_code, 409)  # mismo profesional
+        self.assertEqual(self._reservar(h, p2, "3-5").status_code, 201)  # otro profesional sí
+        self.assertNotIn(h["hora"], [x["hora"] for x in self._horas()[:1]])
 
-    def test_rechaza_cita_que_se_superpone_con_otra(self):
-        existente = self.crear_cita()
-        existente.full_clean()
-        existente.save()
+    def test_fuera_de_horario_rechazado(self):
+        h = {"inicio": f"{self.fecha}T23:00:00-03:00"}
+        self.assertEqual(self._reservar(h, 1).status_code, 409)
 
-        inicio = timezone.make_aware(datetime(2026, 10, 26, 10, 30))
-        with self.assertRaises(ValidationError):
-            self.crear_cita(inicio=inicio).full_clean()
+    def test_agenda_solo_staff(self):
+        self.assertEqual(self.client.get("/api/agenda/").status_code, 403)
+        User.objects.create_user("admin", password="x", is_staff=True)
+        self.client.login(username="admin", password="x")
+        h = self._horas()[0]
+        self._reservar(h, h["profesionales"][0])
+        r = self.client.get("/api/agenda/", {"fecha": self.fecha}).json()
+        self.assertEqual(len(r["citas"]), 1)
+        cid = r["citas"][0]["id"]
+        r = self.client.post(f"/api/citas/{cid}/estado/", json.dumps({"estado": "confirmada"}), content_type="application/json")
+        self.assertEqual(r.json()["cita"]["estado"], "confirmada")

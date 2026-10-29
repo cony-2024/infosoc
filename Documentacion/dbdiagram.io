@@ -2,6 +2,7 @@
 
 Table servicios_servicio {
   id bigint [pk, increment]
+  categoria varchar(20) [not null, default: 'otros', note: 'manos, pies u otros']
   nombre varchar(100) [not null]
   descripcion text [not null]
   precio decimal(10,2) [not null]

@@ -19,6 +19,12 @@ DIA_SEMANA_CHOICES = [
 
 
 class Servicio(models.Model):
+    class Categoria(models.TextChoices):
+        MANOS = "manos", "Manos"
+        PIES = "pies", "Pies"
+        OTROS = "otros", "Otros"
+
+    categoria = models.CharField(max_length=20, choices=Categoria.choices, default=Categoria.OTROS)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
@@ -228,6 +234,12 @@ class Cita(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        # Django NO llama a clean() solo al guardar: lo forzamos para que
+        # las reglas (horario, duración, solapamiento) valgan también desde la API.
+        self.clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.servicio} - {self.profesional} - {self.inicio:%Y-%m-%d %H:%M}"
