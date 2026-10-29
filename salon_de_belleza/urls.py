@@ -1,22 +1,19 @@
-"""
-URL configuration for salon_de_belleza project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
 
+from servicios import api, views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    # Páginas
+    path("", views.index, name="index"),
+    path("reservar/", views.reservar, name="reservar"),
+    path("gestion/", views.gestion, name="gestion"),
+    # API REST
+    path("api/servicios/", api.servicios),
+    path("api/profesionales/", api.profesionales),
+    path("api/disponibilidad/", api.disponibilidad_api),
+    path("api/citas/", api.crear_cita),
+    path("api/citas/<int:cita_id>/estado/", api.cambiar_estado),
+    path("api/agenda/", api.agenda),
 ]

@@ -1,0 +1,33 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Beauty Corner | Manicure y pedicure{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'servicios/css/styles.css' %}">
+</head>
+<body>
+  <header class="barra">
+    <a class="marca" href="{% url 'index' %}" aria-label="Beauty Corner, inicio">
+      <img src="{% static 'servicios/img/logo.png' %}" alt="Beauty Corner" width="56" height="56">
+    </a>
+    <nav>
+      <a href="{% url 'index' %}#servicios">Servicios</a>
+      <a href="{% url 'index' %}#ubicacion">Ubicación</a>
+      <a class="boton boton-chico" href="{% url 'reservar' %}">Reservar hora</a>
+    </nav>
+  </header>
+  <main>{% block contenido %}{% endblock %}</main>
+  <footer class="pie" id="contacto">
+    <p class="pie-marca">Beauty Corner</p>
+    <p>Manos y pies</p>
+    <p><a href="https://wa.me/56936507435">WhatsApp</a> &nbsp;|&nbsp;
+       <a href="https://www.instagram.com/beautycornerlaserena/">Instagram @beautycornerlaserena</a>
+       &nbsp;|&nbsp; <a href="{% url 'gestion' %}">Administración</a></p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

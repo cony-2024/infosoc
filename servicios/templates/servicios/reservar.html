@@ -1,0 +1,37 @@
+{% extends "servicios/base.html" %}
+{% load static %}
+{% block titulo %}Reservar hora | Beauty Corner{% endblock %}
+{% block contenido %}
+<section class="reserva" id="app" data-servicio="{{ servicio_id }}">
+  <h1>Reserva tu hora</h1>
+  <ol class="pasos">
+    <li>
+      <h2>1. Servicio</h2>
+      <div id="servicios" class="opciones" aria-live="polite">Cargando…</div>
+    </li>
+    <li>
+      <h2>2. Profesional</h2>
+      <div id="profesionales" class="opciones"><p class="nota">Primero elige un servicio.</p></div>
+    </li>
+    <li>
+      <h2>3. Fecha y hora</h2>
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha" disabled>
+      <div id="horas" class="horas" aria-live="polite"><p class="nota">Elige servicio y fecha.</p></div>
+    </li>
+    <li>
+      <h2>4. Tus datos</h2>
+      <form id="form-cita" class="form">
+        <label>Nombre <input name="nombre" required autocomplete="name"></label>
+        <label>RUT <input name="rut" required placeholder="12.345.678-9"></label>
+        <label>Teléfono <input name="telefono" type="tel" autocomplete="tel"></label>
+        <label>Email <input name="email" type="email" autocomplete="email"></label>
+        <p id="resumen" class="resumen" hidden></p>
+        <button class="boton" id="enviar" disabled>Confirmar reserva</button>
+      </form>
+      <p id="mensaje" role="status"></p>
+    </li>
+  </ol>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'servicios/js/reservar.js' %}"></script>{% endblock %}
