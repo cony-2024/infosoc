@@ -157,29 +157,37 @@ def crear_cita(request):
     return JsonResponse({"cita": _cita(cita)}, status=201)
 
 
-def _solo_staff(vista):
+def _solo_profesional(request):
+    if not request.user.is_authenticated:
+        return None
+    return Profesional.objects.filter(usuario=request.user, activo=True).first()
+
+
+def _solo_profesional_api(vista):
     def envoltura(request, *a, **k):
-        if not (request.user.is_authenticated and request.user.is_staff):
-            return _error("Requiere iniciar sesión como administrador.", 403)
+        profesional = _solo_profesional(request)
+        if profesional is None:
+            return _error("Requiere iniciar sesión con una cuenta de profesional activa.", 403)
+        request.profesional = profesional
         return vista(request, *a, **k)
     return envoltura
 
 
-@_solo_staff
+@_solo_profesional_api
 @require_GET
 def agenda(request):
-    """GET /api/agenda/?fecha=AAAA-MM-DD  -> citas del día (vista de gestión)."""
+    """GET /api/agenda/?fecha=AAAA-MM-DD -> citas del profesional autenticado."""
     fecha = _fecha(request.GET.get("fecha")) or timezone.localdate()
     citas = (Cita.objects.select_related("cliente", "servicio", "profesional")
-             .filter(inicio__date=fecha).order_by("inicio"))
+             .filter(inicio__date=fecha, profesional=request.profesional).order_by("inicio"))
     # inicio__date usa la zona horaria activa (America/Santiago)
     return JsonResponse({"fecha": fecha.isoformat(), "citas": [_cita(c, incluir_cliente=True) for c in citas]})
 
 
-@_solo_staff
+@_solo_profesional_api
 @require_POST
 def cambiar_estado(request, cita_id):
-    cita = get_object_or_404(Cita, pk=cita_id)
+    cita = get_object_or_404(Cita, pk=cita_id, profesional=request.profesional)
     try:
         estado = json.loads(request.body).get("estado")
     except json.JSONDecodeError:

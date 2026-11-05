@@ -29,12 +29,14 @@ python manage.py runserver
 
 `seed_demo` carga o actualiza servicios de ejemplo y crea profesionales/horarios de demostración. No es necesario para ejecutar las migraciones.
 
+Para dar acceso a un profesional, crea una cuenta de usuario desde `/admin/auth/user/add/` y luego asígnala al registro correspondiente en `/admin/servicios/profesional/`. Cada cuenta debe pertenecer a un solo profesional. El profesional inicia sesión en `/ingresar/`; las cuentas sin asociación activa no pueden abrir la agenda.
+
 ## 2. Funcionalidades implementadas
 
 - Catálogo público de servicios activos, agrupado por categoría.
 - Flujo de reserva para elegir servicio, profesional opcional, fecha y hora.
 - Disponibilidad calculada en intervalos de 30 minutos, según duración del servicio, horario del profesional, reservas activas y bloqueos.
-- Citas en estado inicial `pendiente`; el personal puede confirmarlas o cancelarlas desde la gestión diaria.
+- Citas en estado inicial `pendiente`; cada profesional puede consultar solo sus citas y confirmarlas o cancelarlas desde la gestión diaria.
 - Panel Django Admin para administrar servicios, clientes, profesionales, horarios, bloqueos y citas.
 - Zona horaria `America/Santiago` y configuración de idioma `es-cl`.
 
@@ -44,16 +46,18 @@ python manage.py runserver
 |---|---|---|
 | GET | `/` | Catálogo público |
 | GET | `/reservar/` | Formulario público de reserva |
-| GET | `/gestion/` | Agenda diaria para personal autenticado |
+| GET | `/ingresar/` | Inicio de sesión para profesionales |
+| POST | `/salir/` | Cierra la sesión |
+| GET | `/gestion/` | Agenda diaria del profesional autenticado |
 | GET | `/admin/` | Administración de Django |
 | GET | `/api/servicios/` | Servicios activos |
 | GET | `/api/profesionales/?servicio=ID` | Profesionales activos; puede filtrarse por servicio |
 | GET | `/api/disponibilidad/?servicio=ID&fecha=AAAA-MM-DD[&profesional=ID]` | Horas disponibles |
 | POST | `/api/citas/` | Crea una reserva; responde `409` si no puede agendarse |
-| GET | `/api/agenda/?fecha=AAAA-MM-DD` | Citas del día; solo personal (`is_staff`) |
-| POST | `/api/citas/ID/estado/` | Cambia a `confirmada` o `cancelada`; solo personal |
+| GET | `/api/agenda/?fecha=AAAA-MM-DD` | Citas del día del profesional autenticado |
+| POST | `/api/citas/ID/estado/` | Cambia el estado solo de una cita del profesional autenticado |
 
-El formulario envía la creación de reservas como JSON y usa protección CSRF. Las vistas de gestión exigen inicio de sesión de personal; la agenda de la API comprueba además `is_staff`.
+El formulario envía la creación de reservas como JSON y usa protección CSRF. La gestión requiere una cuenta de Django asociada a un profesional activo. La agenda y el cambio de estado verifican en el servidor que la cita pertenezca a ese profesional. Las cuentas administradoras siguen teniendo acceso al panel Django Admin como función administrativa separada.
 
 ## 4. Validación de datos y privacidad
 
@@ -62,6 +66,7 @@ El formulario envía la creación de reservas como JSON y usa protección CSRF. 
 - **Teléfono:** opcional; si se entrega, se valida como teléfono chileno de nueve dígitos. Se acepta el prefijo `+56` y formatos con separadores, por ejemplo `9 1234 5678` o `+56 9 1234 5678`.
 - Los errores se asocian al campo correspondiente en el formulario. La API repite las validaciones para no depender del navegador.
 - La respuesta pública al crear una cita no devuelve datos del cliente. La agenda devuelve nombre y teléfono, sin RUT ni correo. El panel Django Admin permite a administradores ver los datos completos del cliente.
+- Las contraseñas de acceso se gestionan con el sistema de autenticación de Django; no se almacenan en el modelo `Profesional`. Crea cada cuenta de usuario desde Django Admin y asígnala a un solo profesional. No reutilices cuentas entre profesionales.
 - No hay cifrado de RUT/correo por campo ni verificación de propiedad de correo o teléfono.
 
 ## 5. Modelos y reglas de reserva
@@ -72,8 +77,8 @@ Las citas deben coincidir con la duración del servicio, quedar dentro del horar
 
 ## 6. Migraciones, pruebas y documentación técnica
 
-- Migraciones de la aplicación: `servicios/migrations/0001` a `0005`.
-- Pruebas: `python manage.py test servicios` (9 pruebas en el estado documentado).
+- Migraciones de la aplicación: `servicios/migrations/0001` a `0006`.
+- Pruebas: `python manage.py test servicios` (11 pruebas).
 - Comprobaciones útiles: `python manage.py check` y `python manage.py makemigrations --check --dry-run`.
 - `Documentacion/schema.sql` y `Documentacion/dbdiagram.io` contienen documentación del esquema; verifica que coincidan con las migraciones si se modifica el modelo.
 

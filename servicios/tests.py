@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Cliente
+from .models import Cliente, Profesional
 
 
 def proximo_lunes():
@@ -114,15 +114,55 @@ class ApiAgendaTests(TestCase):
         self.assertTrue(Cliente.objects.filter(rut="12345678-5").exists())
         self.assertNotIn("cliente", respuesta.json()["cita"])
 
-    def test_agenda_solo_staff(self):
+    def test_agenda_y_cambios_solo_para_el_profesional_asociado(self):
         self.assertEqual(self.client.get("/api/agenda/").status_code, 403)
-        User.objects.create_user("admin", password="x", is_staff=True)
-        self.client.login(username="admin", password="x")
+        usuario_1 = User.objects.create_user("profesional1", password="una-clave-segura-123")
+        usuario_2 = User.objects.create_user("profesional2", password="otra-clave-segura-123")
+        profesional_1 = Profesional.objects.get(pk=1)
+        profesional_2 = Profesional.objects.get(pk=2)
+        profesional_1.usuario = usuario_1
+        profesional_1.save()
+        profesional_2.usuario = usuario_2
+        profesional_2.save()
         h = self._horas()[0]
-        self._reservar(h, h["profesionales"][0])
-        r = self.client.get("/api/agenda/", {"fecha": self.fecha}).json()
-        self.assertEqual(len(r["citas"]), 1)
-        self.assertNotIn("rut", r["citas"][0]["cliente"])
-        cid = r["citas"][0]["id"]
-        r = self.client.post(f"/api/citas/{cid}/estado/", json.dumps({"estado": "confirmada"}), content_type="application/json")
-        self.assertEqual(r.json()["cita"]["estado"], "confirmada")
+        cita_1 = self._reservar(h, profesional_1.pk, rut="1-9").json()["cita"]
+        cita_2 = self._reservar(h, profesional_2.pk, rut="2-7").json()["cita"]
+
+        self.client.login(username="profesional1", password="una-clave-segura-123")
+        agenda = self.client.get("/api/agenda/", {"fecha": self.fecha})
+        self.assertEqual(agenda.status_code, 200)
+        self.assertEqual([c["id"] for c in agenda.json()["citas"]], [cita_1["id"]])
+        self.assertNotIn("rut", agenda.json()["citas"][0]["cliente"])
+
+        ajena = self.client.post(
+            f"/api/citas/{cita_2['id']}/estado/",
+            json.dumps({"estado": "confirmada"}),
+            content_type="application/json",
+        )
+        self.assertEqual(ajena.status_code, 404)
+
+        propia = self.client.post(
+            f"/api/citas/{cita_1['id']}/estado/",
+            json.dumps({"estado": "confirmada"}),
+            content_type="application/json",
+        )
+        self.assertEqual(propia.status_code, 200)
+        self.assertEqual(propia.json()["cita"]["estado"], "confirmada")
+
+    def test_cuenta_staff_sin_profesional_no_accede(self):
+        usuario = User.objects.create_user(
+            "staff", password="una-clave-segura-123", is_staff=True,
+        )
+        self.client.login(username=usuario.username, password="una-clave-segura-123")
+        self.assertEqual(self.client.get("/api/agenda/").status_code, 403)
+        self.assertEqual(self.client.get("/gestion/").status_code, 403)
+
+    def test_gestion_requiere_login_y_profesional_activo(self):
+        respuesta = self.client.get("/gestion/")
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertIn("/ingresar/", respuesta.url)
+
+        usuario = User.objects.create_user("profesional", password="una-clave-segura-123")
+        Profesional.objects.filter(pk=1).update(usuario=usuario, activo=False)
+        self.client.login(username=usuario.username, password="una-clave-segura-123")
+        self.assertEqual(self.client.get("/gestion/").status_code, 403)

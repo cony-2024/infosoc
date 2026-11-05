@@ -1,8 +1,9 @@
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .models import Servicio
+from .models import Profesional, Servicio
 
 
 def index(request):
@@ -19,8 +20,11 @@ def reservar(request):
     return render(request, "servicios/reservar.html", {"servicio_id": request.GET.get("servicio", "")})
 
 
-@staff_member_required(login_url="/admin/login/")
+@login_required
 @ensure_csrf_cookie
 def gestion(request):
-    """Vista de gestión diaria para el administrador."""
-    return render(request, "servicios/gestion.html")
+    """Vista de gestión diaria para el profesional autenticado."""
+    profesional = Profesional.objects.filter(usuario=request.user, activo=True).first()
+    if profesional is None:
+        raise PermissionDenied
+    return render(request, "servicios/gestion.html", {"profesional": profesional})

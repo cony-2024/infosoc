@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -64,6 +65,13 @@ class Cliente(models.Model):
 class Profesional(models.Model):
     nombre = models.CharField(max_length=150)
     rut = models.CharField(max_length=12, unique=True)
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="profesional",
+        null=True,
+        blank=True,
+    )
     servicios = models.ManyToManyField(
         Servicio,
         related_name="profesionales",
