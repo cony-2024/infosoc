@@ -22,10 +22,10 @@
     <li>
       <h2>4. Tus datos</h2>
       <form id="form-cita" class="form">
-        <label>Nombre <input name="nombre" required autocomplete="name"></label>
-        <label>RUT <input name="rut" required placeholder="12.345.678-9"></label>
-        <label>Teléfono <input name="telefono" type="tel" autocomplete="tel"></label>
-        <label>Email <input name="email" type="email" autocomplete="email"></label>
+        <label>Nombre <input name="nombre" required autocomplete="name" aria-describedby="error-nombre"><span id="error-nombre" class="error-campo" aria-live="polite"></span></label>
+        <label>RUT <input name="rut" required maxlength="12" autocomplete="off" placeholder="12.345.678-5" aria-describedby="error-rut"><span id="error-rut" class="error-campo" aria-live="polite"></span></label>
+        <label>Teléfono <input name="telefono" type="tel" autocomplete="tel" pattern="(?:\+?56|0056)?[ .\-]?(?:[2-9]|\([2-9]\))(?:[ .\-]?[0-9]){8}" placeholder="+56 9 1234 5678" title="Ingresa 9 dígitos chilenos, por ejemplo 9 1234 5678 o +56 9 1234 5678." aria-describedby="error-telefono"><span id="error-telefono" class="error-campo" aria-live="polite"></span></label>
+        <label>Email <input name="email" type="email" autocomplete="email" aria-describedby="error-email"><span id="error-email" class="error-campo" aria-live="polite"></span></label>
         <p id="resumen" class="resumen" hidden></p>
         <button class="boton" id="enviar" disabled>Confirmar reserva</button>
       </form>

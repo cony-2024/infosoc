@@ -226,6 +226,8 @@ input { font: inherit; padding: .65rem .8rem; border: 2px solid var(--taupe); bo
 .resumen { background: var(--rosa-claro); border-radius: 10px; padding: .75rem 1rem; }
 #mensaje.ok { color: #1d6b3a; font-weight: 600; }
 #mensaje.error { color: #a12b2b; font-weight: 600; }
+.error-campo { color: #a12b2b; font-size: .9rem; font-weight: 400; }
+.form input[aria-invalid="true"] { border-color: #a12b2b; box-shadow: 0 0 0 2px #a12b2b; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 
 /* ===== Gestión ===== */

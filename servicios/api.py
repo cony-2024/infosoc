@@ -20,18 +20,37 @@ def _servicio(s):
     }
 
 
-def _cita(c):
+def _cita(c, incluir_cliente=False):
     ini, fin = timezone.localtime(c.inicio), timezone.localtime(c.fin)
-    return {
+    datos = {
         "id": c.id, "inicio": ini.isoformat(), "fin": fin.isoformat(),
         "hora": f"{ini:%H:%M}–{fin:%H:%M}", "estado": c.estado,
-        "cliente": {"nombre": c.cliente.nombre, "telefono": c.cliente.telefono, "rut": c.cliente.rut},
         "servicio": c.servicio.nombre, "profesional": c.profesional.nombre,
     }
+    if incluir_cliente:
+        datos["cliente"] = {"nombre": c.cliente.nombre, "telefono": c.cliente.telefono}
+    return datos
 
 
 def _error(msg, status=400, **extra):
     return JsonResponse({"error": msg, **extra}, status=status)
+
+
+def _mensaje_error_cliente(campo, error):
+    if campo == "email" and error.code == "invalid":
+        return "Ingresa un correo válido, por ejemplo nombre@dominio.cl."
+    if campo == "rut" and error.message != "Escribe tu RUT.":
+        return "RUT inválido. Revisa el número y su dígito verificador (ej.: 12.345.678-5)."
+    if campo == "telefono" and error.code == "invalid_phone":
+        return "Teléfono inválido. Ingresa 9 dígitos chilenos, por ejemplo 9 1234 5678 o +56 9 1234 5678."
+    return error.message
+
+
+def _detalles_cliente(error):
+    detalles = {}
+    for campo, errores in error.error_dict.items():
+        detalles[campo] = [_mensaje_error_cliente(campo, detalle) for detalle in errores]
+    return detalles
 
 
 def _fecha(valor):
@@ -83,6 +102,8 @@ def crear_cita(request):
     """POST /api/citas/  {servicio, profesional, inicio, cliente:{nombre,rut,email,telefono}}"""
     try:
         d = json.loads(request.body)
+        if not isinstance(d, dict) or not isinstance(d.get("cliente"), dict):
+            raise ValueError
         cli = d["cliente"]
         servicio = get_object_or_404(Servicio, pk=d["servicio"], activo=True)
         prof = get_object_or_404(Profesional, pk=d["profesional"], activo=True)
@@ -91,14 +112,39 @@ def crear_cita(request):
             raise ValueError
         if timezone.is_naive(inicio):
             inicio = timezone.make_aware(inicio)
-        nombre, rut = cli["nombre"].strip(), cli["rut"].strip()
-        if not nombre or not rut:
-            raise ValueError
-    except (KeyError, ValueError, TypeError, json.JSONDecodeError):
+        errores = {}
+        nombre, rut = cli.get("nombre"), cli.get("rut")
+        if not isinstance(nombre, str) or not nombre.strip():
+            errores["nombre"] = ["Escribe tu nombre."]
+        if not isinstance(rut, str) or not rut.strip():
+            errores["rut"] = ["Escribe tu RUT."]
+        if errores:
+            raise ValidationError(errores)
+        email = cli.get("email", "")
+        telefono = cli.get("telefono", "")
+        if not isinstance(email, str):
+            raise ValidationError({"email": ["Ingresa un correo válido."]})
+        if not isinstance(telefono, str):
+            raise ValidationError({"telefono": ["Ingresa un teléfono válido."]})
+        cliente_validado = Cliente(
+            nombre=nombre.strip(),
+            rut=rut.strip(),
+            email=email.strip(),
+            telefono=telefono.strip(),
+        )
+        cliente_validado.full_clean(validate_unique=False)
+    except ValidationError as e:
+        return _error("Revisa los campos indicados.", detalles=_detalles_cliente(e))
+    except (KeyError, ValueError, TypeError, AttributeError, json.JSONDecodeError):
         return _error("Datos incompletos o inválidos.")
 
     cliente, _ = Cliente.objects.update_or_create(
-        rut=rut, defaults={"nombre": nombre, "email": cli.get("email", ""), "telefono": cli.get("telefono", "")}
+        rut=cliente_validado.rut,
+        defaults={
+            "nombre": cliente_validado.nombre,
+            "email": cliente_validado.email,
+            "telefono": cliente_validado.telefono,
+        },
     )
     try:
         cita = Cita(cliente=cliente, profesional=prof, servicio=servicio,
@@ -127,7 +173,7 @@ def agenda(request):
     citas = (Cita.objects.select_related("cliente", "servicio", "profesional")
              .filter(inicio__date=fecha).order_by("inicio"))
     # inicio__date usa la zona horaria activa (America/Santiago)
-    return JsonResponse({"fecha": fecha.isoformat(), "citas": [_cita(c) for c in citas]})
+    return JsonResponse({"fecha": fecha.isoformat(), "citas": [_cita(c, incluir_cliente=True) for c in citas]})
 
 
 @_solo_staff

@@ -6,6 +6,8 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
 
+from .validators import normalizar_rut, validar_telefono_chileno
+
 
 DIA_SEMANA_CHOICES = [
     (0, "Lunes"),
@@ -41,6 +43,19 @@ class Cliente(models.Model):
     rut = models.CharField(max_length=12, unique=True)
     email = models.EmailField(blank=True)
     telefono = models.CharField(max_length=20, blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.rut:
+            try:
+                self.rut = normalizar_rut(self.rut)
+            except ValidationError as e:
+                raise ValidationError({"rut": e.messages}) from e
+        if self.telefono:
+            try:
+                validar_telefono_chileno(self.telefono)
+            except ValidationError as e:
+                raise ValidationError({"telefono": e}) from e
 
     def __str__(self):
         return self.nombre
