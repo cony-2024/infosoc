@@ -16,17 +16,9 @@ python -m venv env
 pip install -r requirements.txt
 ```
 
-No hay un archivo `.env.example` en el repositorio. Si se necesita configuración local, crea `.env` en la raíz y define allí las variables necesarias:
+Sobre el archivo `.env`, fue compartido por discord, debes ponerlo en la raíz del proyecto.
 
-```dotenv
-SECRET_KEY=una-clave-secreta-local
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-Para usar PostgreSQL, agrega `DATABASE_URL` con la cadena de conexión correspondiente. La configuración requiere SSL cuando esa URL comienza con `postgres`. No subas `.env` ni compartas credenciales; `.env` está excluido por `.gitignore`. Sin `DATABASE_URL`, Django usa `db.sqlite3`.
-
-Luego ejecuta:
+Si no funciona la conexión con la bd, prueba hacer las migraciones (ahí los cambios ocurren para todos y perderiamos el registro de clientes porque es como reinciar la Base de datos, pero como no hay clientes aun pueden probar estos comandos con confianza):
 
 ```powershell
 python manage.py migrate
