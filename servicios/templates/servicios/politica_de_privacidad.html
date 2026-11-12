@@ -1,0 +1,92 @@
+{% extends "servicios/base.html" %}
+{% block titulo %}Política de privacidad | Beauty Corner{% endblock %}
+{% block contenido %}
+<article class="politica">
+  <h1>Política de privacidad</h1>
+  <p class="politica__introduccion">
+    Esta política explica qué información tratamos cuando reservas una hora con Beauty Corner.
+  </p>
+
+  <aside class="politica__pendiente" aria-label="Aviso: borrador por completar">
+    <strong>Borrador pendiente de completar:</strong> antes de publicar esta política como
+    definitiva, agrega el nombre o razón social de quien presta el servicio y un correo de
+    contacto válido en los campos indicados.
+  </aside>
+
+  <section>
+    <h2>Responsable</h2>
+    <p>
+      Beauty Corner. Nombre o razón social: <strong>[Completar]</strong>.
+      Domicilio: <strong>[Completar]</strong>.
+      Contacto para consultas de privacidad: <strong>[Completar correo de contacto]</strong>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Qué datos recopilamos</h2>
+    <p>
+      Para gestionar una reserva solicitamos tu nombre y teléfono. Puedes proporcionar
+      un correo electrónico de forma opcional. También se genera información de la cita,
+      como el servicio, la fecha, la hora y su estado.
+    </p>
+  </section>
+
+  <section>
+    <h2>Para qué usamos tus datos</h2>
+    <p>
+      Los usamos para agendar y gestionar tus citas, contactarte respecto de una reserva
+      y comunicar cambios o cancelaciones. No utilizamos estos datos para enviarte
+      publicidad.
+    </p>
+  </section>
+
+  <section>
+    <h2>Con quién los compartimos</h2>
+    <p>
+      No vendemos tus datos. Para operar el sitio podemos utilizar proveedores
+      tecnológicos de alojamiento y base de datos, que procesan o almacenan información
+      por cuenta del servicio. No se usan tus datos para publicidad.
+    </p>
+  </section>
+
+  <section>
+    <h2>Cuánto tiempo los conservamos</h2>
+    <p>
+      El borrador establece conservar los datos mientras mantengas una relación con
+      Beauty Corner y hasta 12 meses desde tu última cita; después, se eliminarían o
+      anonimizarían. Este plazo debe confirmarse antes de publicar la política como
+      definitiva.
+    </p>
+  </section>
+
+  <section>
+    <h2>Tus derechos y consultas</h2>
+    <p>
+      Puedes solicitar acceso, rectificación o eliminación de tus datos, o realizar
+      consultas sobre su tratamiento, escribiendo a
+      <strong>[Completar correo de contacto]</strong>. También puedes retirar tu
+      consentimiento cuando corresponda. El procedimiento y los plazos de respuesta
+      deben confirmarse con el responsable.
+    </p>
+  </section>
+
+  <section>
+    <h2>Seguridad</h2>
+    <p>
+      Se aplican medidas técnicas y organizativas para proteger la información frente
+      a accesos no autorizados.
+    </p>
+  </section>
+
+  <section>
+    <h2>Cambios a esta política</h2>
+    <p>
+      Si se actualiza esta política, la versión vigente se publicará en esta página
+      junto con su fecha de actualización.
+    </p>
+    <p><strong>Última actualización:</strong> 12 de noviembre de 2026.</p>
+  </section>
+
+  <a class="boton boton-chico" href="{% url 'reservar' %}">Volver a reservar</a>
+</article>
+{% endblock %}

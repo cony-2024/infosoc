@@ -15,6 +15,7 @@ urlpatterns = [
     # Páginas
     path("", views.index, name="index"),
     path("reservar/", views.reservar, name="reservar"),
+    path("privacidad/", views.politica_de_privacidad, name="politica_de_privacidad"),
     path("gestion/", views.gestion, name="gestion"),
     # API REST
     path("api/servicios/", api.servicios),

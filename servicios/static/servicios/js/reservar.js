@@ -78,7 +78,7 @@ function actualizarResumen() {
 }
 
 function limpiarErrores() {
-  for (const campo of ["nombre", "rut", "telefono", "email"]) {
+  for (const campo of ["nombre", "telefono", "email"]) {
     const input = document.querySelector(`[name="${campo}"]`);
     input.setCustomValidity("");
     input.removeAttribute("aria-invalid");
@@ -88,7 +88,7 @@ function limpiarErrores() {
 
 function mostrarErrores(data) {
   limpiarErrores();
-  const campos = { nombre: "Nombre", rut: "RUT", telefono: "Teléfono", email: "Email" };
+  const campos = { nombre: "Nombre", telefono: "Teléfono", email: "Email" };
   const detalles = data.detalles;
   if (detalles && !Array.isArray(detalles) && typeof detalles === "object") {
     const generales = [];
@@ -113,10 +113,10 @@ function mostrarErrores(data) {
 
 const mensajesRequeridos = {
   nombre: "Escribe tu nombre.",
-  rut: "Escribe tu RUT.",
+  telefono: "Escribe tu teléfono.",
 };
 
-for (const campo of ["nombre", "rut", "telefono", "email"]) {
+for (const campo of ["nombre", "telefono", "email"]) {
   const input = document.querySelector(`[name="${campo}"]`);
   input.addEventListener("invalid", () => {
     if (!input.validity.customError) {
@@ -147,7 +147,10 @@ $("form-cita").addEventListener("submit", async (e) => {
     headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
     body: JSON.stringify({
       servicio: estado.servicio.id, profesional, inicio: estado.hora.inicio,
-      cliente: Object.fromEntries(f),
+      cliente: {
+        ...Object.fromEntries(f),
+        acepta_politica_privacidad: f.has("acepta_politica_privacidad"),
+      },
     }),
   });
   const data = await r.json();
@@ -162,7 +165,7 @@ $("form-cita").addEventListener("submit", async (e) => {
   }
 });
 
-for (const campo of ["nombre", "rut", "telefono", "email"]) {
+for (const campo of ["nombre", "telefono", "email"]) {
   const input = document.querySelector(`[name="${campo}"]`);
   input.addEventListener("input", () => {
     input.setCustomValidity("");

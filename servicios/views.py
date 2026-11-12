@@ -20,6 +20,11 @@ def reservar(request):
     return render(request, "servicios/reservar.html", {"servicio_id": request.GET.get("servicio", "")})
 
 
+def politica_de_privacidad(request):
+    """Muestra la política de privacidad del servicio."""
+    return render(request, "servicios/politica_de_privacidad.html")
+
+
 @login_required
 @ensure_csrf_cookie
 def gestion(request):
