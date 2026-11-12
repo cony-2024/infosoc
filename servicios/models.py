@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q
+from django.db.models.functions import Lower
 from django.utils import timezone
 
-from .validators import normalizar_rut, validar_telefono_chileno
+from .validators import normalizar_telefono_chileno
 
 
 DIA_SEMANA_CHOICES = [
@@ -41,22 +42,42 @@ class Servicio(models.Model):
 
 class Cliente(models.Model):
     nombre = models.CharField(max_length=150)
-    rut = models.CharField(max_length=12, unique=True)
-    email = models.EmailField(blank=True)
-    telefono = models.CharField(max_length=20, blank=True)
+    telefono = models.CharField(
+        max_length=20,
+        unique=True,
+    )
+    email = models.EmailField(max_length=254, blank=True, null=True)
+    acepta_politica_privacidad = models.BooleanField(default=False, db_default=False)
+    acepta_politica_en = models.DateTimeField(blank=True, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(telefono__regex=r"^\+?[0-9]{8,15}$"),
+                name="cliente_telefono_formato",
+            ),
+            models.CheckConstraint(
+                condition=Q(acepta_politica_privacidad=False)
+                | Q(acepta_politica_en__isnull=False),
+                name="cliente_consentimiento_con_fecha",
+            ),
+            models.UniqueConstraint(
+                Lower("email"),
+                condition=Q(email__isnull=False),
+                name="cliente_email_unico_idx",
+            ),
+        ]
 
     def clean(self):
         super().clean()
-        if self.rut:
-            try:
-                self.rut = normalizar_rut(self.rut)
-            except ValidationError as e:
-                raise ValidationError({"rut": e.messages}) from e
         if self.telefono:
             try:
-                validar_telefono_chileno(self.telefono)
+                self.telefono = normalizar_telefono_chileno(self.telefono)
             except ValidationError as e:
                 raise ValidationError({"telefono": e}) from e
+        if self.email is not None:
+            self.email = self.email.strip() or None
 
     def __str__(self):
         return self.nombre

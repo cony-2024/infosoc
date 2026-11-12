@@ -25,8 +25,9 @@ class ProfesionalAdmin(admin.ModelAdmin):
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "rut", "email", "telefono")
-    search_fields = ("nombre", "rut")
+    list_display = ("nombre", "telefono", "email", "acepta_politica_privacidad")
+    list_filter = ("acepta_politica_privacidad",)
+    search_fields = ("nombre", "telefono", "email")
 
 
 @admin.register(Cita)

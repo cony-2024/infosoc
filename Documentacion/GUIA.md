@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 Sobre el archivo `.env`, fue compartido por discord, debes ponerlo en la raíz del proyecto.
 
-Si no funciona la conexión con la bd, prueba hacer las migraciones (ahí los cambios ocurren para todos y perderiamos el registro de clientes porque es como reinciar la Base de datos, pero como no hay clientes aun pueden probar estos comandos con confianza):
+Si no funciona la conexión con la bd, puedes aplicar las migraciones. Antes de ejecutar la migración `0007`, haz un respaldo: elimina el RUT de las clientas según el esquema nuevo y detiene la migración si encuentra teléfonos vacíos/inválidos o teléfonos/correos duplicados. Corrige esos registros antes de volver a intentarlo.
 
 ```powershell
 python manage.py migrate
@@ -35,6 +35,7 @@ Para dar acceso a un profesional, crea una cuenta de usuario desde `/admin/auth/
 
 - Catálogo público de servicios activos, agrupado por categoría.
 - Flujo de reserva para elegir servicio, profesional opcional, fecha y hora.
+- Registro de clientas por teléfono normalizado; correo opcional y consentimiento de privacidad con fecha.
 - Disponibilidad calculada en intervalos de 30 minutos, según duración del servicio, horario del profesional, reservas activas y bloqueos.
 - Citas en estado inicial `pendiente`; cada profesional puede consultar solo sus citas y confirmarlas o cancelarlas desde la gestión diaria.
 - Panel Django Admin para administrar servicios, clientes, profesionales, horarios, bloqueos y citas.
@@ -61,13 +62,14 @@ El formulario envía la creación de reservas como JSON y usa protección CSRF. 
 
 ## 4. Validación de datos y privacidad
 
-- **Nombre y RUT:** obligatorios. El RUT se valida en el servidor, incluido el dígito verificador, y se guarda normalizado sin puntos y con guion.
-- **Correo:** opcional; se valida su formato, pero no se verifica que la dirección exista ni que pertenezca a quien reserva.
-- **Teléfono:** opcional; si se entrega, se valida como teléfono chileno de nueve dígitos. Se acepta el prefijo `+56` y formatos con separadores, por ejemplo `9 1234 5678` o `+56 9 1234 5678`.
+- **Nombre y teléfono:** obligatorios. El teléfono se valida como número chileno de nueve dígitos y se almacena normalizado con prefijo `+56`; se acepta, por ejemplo, `9 1234 5678` o `+56 9 1234 5678`. Es el identificador de la clienta.
+- **Correo:** opcional; los valores vacíos se guardan como `NULL`. Debe tener formato válido y es único sin distinguir mayúsculas/minúsculas.
+- **RUT de clientas:** ya no se recopila ni almacena. El RUT de profesionales no cambia.
+- **Consentimiento:** la casilla de privacidad es opcional; si se marca se guarda la fecha y hora. La base impide registrar una aceptación sin fecha.
 - Los errores se asocian al campo correspondiente en el formulario. La API repite las validaciones para no depender del navegador.
-- La respuesta pública al crear una cita no devuelve datos del cliente. La agenda devuelve nombre y teléfono, sin RUT ni correo. El panel Django Admin permite a administradores ver los datos completos del cliente.
+- La respuesta pública al crear una cita no devuelve datos del cliente. La agenda devuelve nombre y teléfono, sin correo. El panel Django Admin permite a administradores ver los datos del cliente y su estado de consentimiento.
 - Las contraseñas de acceso se gestionan con el sistema de autenticación de Django; no se almacenan en el modelo `Profesional`. Crea cada cuenta de usuario desde Django Admin y asígnala a un solo profesional. No reutilices cuentas entre profesionales.
-- No hay cifrado de RUT/correo por campo ni verificación de propiedad de correo o teléfono.
+- No hay cifrado de correo o teléfono por campo ni verificación de propiedad del correo o teléfono.
 
 ## 5. Modelos y reglas de reserva
 
@@ -77,10 +79,10 @@ Las citas deben coincidir con la duración del servicio, quedar dentro del horar
 
 ## 6. Migraciones, pruebas y documentación técnica
 
-- Migraciones de la aplicación: `servicios/migrations/0001` a `0006`.
+- Migraciones de la aplicación: `servicios/migrations/0001` a `0008`.
 - Pruebas: `python manage.py test servicios` (11 pruebas).
 - Comprobaciones útiles: `python manage.py check` y `python manage.py makemigrations --check --dry-run`.
-- `Documentacion/schema.sql` y `Documentacion/dbdiagram.io` contienen documentación del esquema; verifica que coincidan con las migraciones si se modifica el modelo.
+- `Documentacion/schema.sql` y `Documentacion/dbdiagram.io` contienen documentación del esquema. El SQL completo y las migraciones son alternativas: no ejecutes ambos sobre la misma base.
 
 ## 7. Seguridad y pendientes
 

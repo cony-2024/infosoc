@@ -3,6 +3,7 @@ import json
 from datetime import date, timedelta
 
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -39,8 +40,6 @@ def _error(msg, status=400, **extra):
 def _mensaje_error_cliente(campo, error):
     if campo == "email" and error.code == "invalid":
         return "Ingresa un correo válido, por ejemplo nombre@dominio.cl."
-    if campo == "rut" and error.message != "Escribe tu RUT.":
-        return "RUT inválido. Revisa el número y su dígito verificador (ej.: 12.345.678-5)."
     if campo == "telefono" and error.code == "invalid_phone":
         return "Teléfono inválido. Ingresa 9 dígitos chilenos, por ejemplo 9 1234 5678 o +56 9 1234 5678."
     return error.message
@@ -99,7 +98,7 @@ def disponibilidad_api(request):
 
 @require_POST
 def crear_cita(request):
-    """POST /api/citas/  {servicio, profesional, inicio, cliente:{nombre,rut,email,telefono}}"""
+    """POST /api/citas/ {servicio, profesional, inicio, cliente:{nombre,telefono,email,acepta_politica_privacidad}}"""
     try:
         d = json.loads(request.body)
         if not isinstance(d, dict) or not isinstance(d.get("cliente"), dict):
@@ -113,46 +112,69 @@ def crear_cita(request):
         if timezone.is_naive(inicio):
             inicio = timezone.make_aware(inicio)
         errores = {}
-        nombre, rut = cli.get("nombre"), cli.get("rut")
+        nombre, telefono = cli.get("nombre"), cli.get("telefono")
         if not isinstance(nombre, str) or not nombre.strip():
             errores["nombre"] = ["Escribe tu nombre."]
-        if not isinstance(rut, str) or not rut.strip():
-            errores["rut"] = ["Escribe tu RUT."]
+        if not isinstance(telefono, str) or not telefono.strip():
+            errores["telefono"] = ["Escribe tu teléfono."]
         if errores:
             raise ValidationError(errores)
         email = cli.get("email", "")
         telefono = cli.get("telefono", "")
+        if email is None:
+            email = ""
         if not isinstance(email, str):
             raise ValidationError({"email": ["Ingresa un correo válido."]})
         if not isinstance(telefono, str):
             raise ValidationError({"telefono": ["Ingresa un teléfono válido."]})
+        acepta_politica = cli.get("acepta_politica_privacidad", False)
+        if not isinstance(acepta_politica, bool):
+            raise ValidationError(
+                {"acepta_politica_privacidad": ["La aceptación debe ser verdadera o falsa."]}
+            )
         cliente_validado = Cliente(
             nombre=nombre.strip(),
-            rut=rut.strip(),
-            email=email.strip(),
             telefono=telefono.strip(),
+            email=email.strip() or None,
+            acepta_politica_privacidad=acepta_politica,
+            acepta_politica_en=timezone.now() if acepta_politica else None,
         )
-        cliente_validado.full_clean(validate_unique=False)
+        cliente_validado.full_clean(validate_unique=False, validate_constraints=False)
     except ValidationError as e:
         return _error("Revisa los campos indicados.", detalles=_detalles_cliente(e))
     except (KeyError, ValueError, TypeError, AttributeError, json.JSONDecodeError):
         return _error("Datos incompletos o inválidos.")
 
-    cliente, _ = Cliente.objects.update_or_create(
-        rut=cliente_validado.rut,
-        defaults={
-            "nombre": cliente_validado.nombre,
-            "email": cliente_validado.email,
-            "telefono": cliente_validado.telefono,
-        },
-    )
     try:
-        cita = Cita(cliente=cliente, profesional=prof, servicio=servicio,
-                    inicio=inicio, fin=inicio + timedelta(minutes=servicio.duracion_minutos))
-        cita.save()  # save() ejecuta clean(): horario, solapamientos, bloqueos
+        with transaction.atomic():
+            cliente, _ = Cliente.objects.update_or_create(
+                telefono=cliente_validado.telefono,
+                defaults={
+                    "nombre": cliente_validado.nombre,
+                    "email": cliente_validado.email,
+                    "acepta_politica_privacidad": cliente_validado.acepta_politica_privacidad,
+                    "acepta_politica_en": cliente_validado.acepta_politica_en,
+                },
+            )
+            cita = Cita(
+                cliente=cliente,
+                profesional=prof,
+                servicio=servicio,
+                inicio=inicio,
+                fin=inicio + timedelta(minutes=servicio.duracion_minutos),
+            )
+            cita.save()  # save() ejecuta clean(): horario, solapamientos, bloqueos
     except ValidationError as e:
         return _error("No se pudo agendar.", 409, detalles=e.message_dict if hasattr(e, "error_dict") else e.messages)
-    except Exception:  # p. ej. restricción de exclusión de PostgreSQL ante reservas simultáneas
+    except IntegrityError:
+        if cliente_validado.email and Cliente.objects.filter(
+            email__iexact=cliente_validado.email,
+        ).exclude(telefono=cliente_validado.telefono).exists():
+            return _error(
+                "Ese correo ya está asociado a otra clienta.",
+                400,
+                detalles={"email": ["Usa un correo distinto o deja el campo vacío."]},
+            )
         return _error("Esa hora acaba de ser tomada. Elige otra.", 409)
     return JsonResponse({"cita": _cita(cita)}, status=201)
 

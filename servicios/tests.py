@@ -26,10 +26,22 @@ class ApiAgendaTests(TestCase):
         self.assertEqual(r.status_code, 200)
         return r.json()["horas"]
 
-    def _reservar(self, hora, prof, rut="1-9", email="", telefono="912345678"):
+    def _reservar(
+        self,
+        hora,
+        prof,
+        email="",
+        telefono="912345678",
+        acepta_politica_privacidad=False,
+    ):
         return self.client.post("/api/citas/", json.dumps({
             "servicio": 1, "profesional": prof, "inicio": hora["inicio"],
-            "cliente": {"nombre": "Ana", "rut": rut, "email": email, "telefono": telefono}}), content_type="application/json")
+            "cliente": {
+                "nombre": "Ana",
+                "email": email,
+                "telefono": telefono,
+                "acepta_politica_privacidad": acepta_politica_privacidad,
+            }}), content_type="application/json")
 
     def test_catalogo_y_horas(self):
         self.assertEqual(len(self.client.get("/api/servicios/").json()["servicios"]), 5)
@@ -41,26 +53,20 @@ class ApiAgendaTests(TestCase):
         h = self._horas()[0]
         p1, p2 = h["profesionales"]
         self.assertEqual(self._reservar(h, p1).status_code, 201)
-        self.assertEqual(self._reservar(h, p1, "2-7").status_code, 409)  # mismo profesional
-        self.assertEqual(self._reservar(h, p2, "3-5").status_code, 201)  # otro profesional sí
+        self.assertEqual(self._reservar(h, p1, telefono="987654321").status_code, 409)  # mismo profesional
+        self.assertEqual(self._reservar(h, p2, telefono="987654322").status_code, 201)  # otro profesional sí
         self.assertNotIn(h["hora"], [x["hora"] for x in self._horas()[:1]])
 
     def test_fuera_de_horario_rechazado(self):
         h = {"inicio": f"{self.fecha}T23:00:00-03:00"}
         self.assertEqual(self._reservar(h, 1).status_code, 409)
 
-    def test_rut_y_email_invalidos_no_se_guardan(self):
+    def test_email_invalido_no_se_guarda(self):
         h = self._horas()[0]
         profesional = h["profesionales"][0]
 
-        respuesta_rut = self._reservar(h, profesional, rut="12.345.678-9")
-        respuesta_email = self._reservar(h, profesional, rut="12.345.678-5", email="no-es-un-correo")
+        respuesta_email = self._reservar(h, profesional, email="no-es-un-correo")
 
-        self.assertEqual(respuesta_rut.status_code, 400)
-        self.assertEqual(
-            respuesta_rut.json()["detalles"]["rut"],
-            ["RUT inválido. Revisa el número y su dígito verificador (ej.: 12.345.678-5)."],
-        )
         self.assertEqual(respuesta_email.status_code, 400)
         self.assertEqual(
             respuesta_email.json()["detalles"]["email"],
@@ -74,13 +80,13 @@ class ApiAgendaTests(TestCase):
             "servicio": 1,
             "profesional": hora["profesionales"][0],
             "inicio": hora["inicio"],
-            "cliente": {"nombre": " ", "rut": ""},
+            "cliente": {"nombre": " ", "telefono": ""},
         }), content_type="application/json")
 
         self.assertEqual(respuesta.status_code, 400)
         self.assertEqual(respuesta.json()["detalles"], {
             "nombre": ["Escribe tu nombre."],
-            "rut": ["Escribe tu RUT."],
+            "telefono": ["Escribe tu teléfono."],
         })
 
     def test_telefono_chileno_invalido_se_indica_en_el_campo(self):
@@ -98,21 +104,56 @@ class ApiAgendaTests(TestCase):
     def test_telefono_chileno_acepta_formatos_local_e_internacional(self):
         hora = self._horas()[0]
 
-        ruts = ("1-9", "2-7")
         for indice, telefono in enumerate(("9 1234 5678", "+56 9 1234 5678")):
             respuesta = self._reservar(
-                hora, hora["profesionales"][indice], rut=ruts[indice], telefono=telefono,
+                hora, hora["profesionales"][indice], telefono=telefono,
             )
             self.assertEqual(respuesta.status_code, 201)
 
-    def test_rut_se_normaliza_y_no_se_devuelve_en_respuesta_publica(self):
+    def test_telefono_se_normaliza_y_consentimiento_queda_registrado(self):
         h = self._horas()[0]
 
-        respuesta = self._reservar(h, h["profesionales"][0], rut="12.345.678-5", email="ana@example.com")
+        respuesta = self._reservar(
+            h,
+            h["profesionales"][0],
+            email="ana@example.com",
+            telefono="9 1234 5678",
+            acepta_politica_privacidad=True,
+        )
 
         self.assertEqual(respuesta.status_code, 201)
-        self.assertTrue(Cliente.objects.filter(rut="12345678-5").exists())
+        cliente = Cliente.objects.get(telefono="+56912345678")
+        self.assertEqual(cliente.email, "ana@example.com")
+        self.assertTrue(cliente.acepta_politica_privacidad)
+        self.assertIsNotNone(cliente.acepta_politica_en)
         self.assertNotIn("cliente", respuesta.json()["cita"])
+
+    def test_email_vacio_es_null_y_sin_consentimiento_no_hay_fecha(self):
+        hora = self._horas()[0]
+
+        respuesta = self._reservar(hora, hora["profesionales"][0], email="  ")
+
+        self.assertEqual(respuesta.status_code, 201)
+        cliente = Cliente.objects.get(telefono="+56912345678")
+        self.assertIsNone(cliente.email)
+        self.assertFalse(cliente.acepta_politica_privacidad)
+        self.assertIsNone(cliente.acepta_politica_en)
+
+    def test_email_es_unico_sin_distinguir_mayusculas(self):
+        hora = self._horas()[0]
+        profesionales = hora["profesionales"]
+
+        primera = self._reservar(
+            hora, profesionales[0], email="ana@example.com", telefono="912345678",
+        )
+        segunda = self._reservar(
+            hora, profesionales[1], email="ANA@example.com", telefono="987654321",
+        )
+
+        self.assertEqual(primera.status_code, 201)
+        self.assertEqual(segunda.status_code, 400)
+        self.assertIn("email", segunda.json()["detalles"])
+        self.assertEqual(Cliente.objects.count(), 1)
 
     def test_agenda_y_cambios_solo_para_el_profesional_asociado(self):
         self.assertEqual(self.client.get("/api/agenda/").status_code, 403)
@@ -125,14 +166,14 @@ class ApiAgendaTests(TestCase):
         profesional_2.usuario = usuario_2
         profesional_2.save()
         h = self._horas()[0]
-        cita_1 = self._reservar(h, profesional_1.pk, rut="1-9").json()["cita"]
-        cita_2 = self._reservar(h, profesional_2.pk, rut="2-7").json()["cita"]
+        cita_1 = self._reservar(h, profesional_1.pk, telefono="912345678").json()["cita"]
+        cita_2 = self._reservar(h, profesional_2.pk, telefono="987654321").json()["cita"]
 
         self.client.login(username="profesional1", password="una-clave-segura-123")
         agenda = self.client.get("/api/agenda/", {"fecha": self.fecha})
         self.assertEqual(agenda.status_code, 200)
         self.assertEqual([c["id"] for c in agenda.json()["citas"]], [cita_1["id"]])
-        self.assertNotIn("rut", agenda.json()["citas"][0]["cliente"])
+        self.assertNotIn("email", agenda.json()["citas"][0]["cliente"])
 
         ajena = self.client.post(
             f"/api/citas/{cita_2['id']}/estado/",
