@@ -1,10 +1,15 @@
 # Proyecto Beauty Corner
 
-Integrantes
+## Integrantes
+
 Bastian Herrera
+
 Sebastian Salgado
+
 Hans Rodriguez
+
 Constanza Pizarro
+
 Franco Guerrero
 
 ## Instrucciones de uso ~windows

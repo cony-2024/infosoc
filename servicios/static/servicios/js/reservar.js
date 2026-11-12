@@ -77,11 +77,69 @@ function actualizarResumen() {
   if (ok) r.textContent = `${estado.servicio.nombre} · ${$("fecha").value} a las ${estado.hora.hora} · ${clp(estado.servicio.precio)}`;
 }
 
+function limpiarErrores() {
+  for (const campo of ["nombre", "rut", "telefono", "email"]) {
+    const input = document.querySelector(`[name="${campo}"]`);
+    input.setCustomValidity("");
+    input.removeAttribute("aria-invalid");
+    $(`error-${campo}`).textContent = "";
+  }
+}
+
+function mostrarErrores(data) {
+  limpiarErrores();
+  const campos = { nombre: "Nombre", rut: "RUT", telefono: "Teléfono", email: "Email" };
+  const detalles = data.detalles;
+  if (detalles && !Array.isArray(detalles) && typeof detalles === "object") {
+    const generales = [];
+    for (const [campo, mensajes] of Object.entries(detalles)) {
+      const texto = Array.isArray(mensajes) ? mensajes.join(" ") : String(mensajes);
+      if (campos[campo]) {
+        const input = document.querySelector(`[name="${campo}"]`);
+        input.setCustomValidity(texto);
+        input.setAttribute("aria-invalid", "true");
+        $(`error-${campo}`).textContent = texto;
+      } else {
+        generales.push(texto);
+      }
+    }
+    const conError = Object.keys(campos).find((campo) => $(`error-${campo}`).textContent);
+    $("mensaje").textContent = generales[0] || (conError ? "Corrige el campo indicado." : data.error);
+    if (conError) document.querySelector(`[name="${conError}"]`).reportValidity();
+    return;
+  }
+  $("mensaje").textContent = Array.isArray(detalles) ? detalles.join(" ") : data.error || "No se pudo agendar.";
+}
+
+const mensajesRequeridos = {
+  nombre: "Escribe tu nombre.",
+  rut: "Escribe tu RUT.",
+};
+
+for (const campo of ["nombre", "rut", "telefono", "email"]) {
+  const input = document.querySelector(`[name="${campo}"]`);
+  input.addEventListener("invalid", () => {
+    if (!input.validity.customError) {
+      if (input.validity.valueMissing) {
+        input.setCustomValidity(mensajesRequeridos[campo] || `Completa el campo ${campo}.`);
+      } else if (input.validity.typeMismatch && campo === "email") {
+        input.setCustomValidity("Ingresa un correo válido, por ejemplo nombre@dominio.cl.");
+      } else if (input.validity.patternMismatch && campo === "telefono") {
+        input.setCustomValidity("Teléfono inválido. Ingresa 9 dígitos chilenos, por ejemplo 9 1234 5678 o +56 9 1234 5678.");
+      }
+    }
+    input.setAttribute("aria-invalid", "true");
+    $(`error-${campo}`).textContent = input.validationMessage;
+  });
+}
+
 $("fecha").addEventListener("change", cargarHoras);
 
 $("form-cita").addEventListener("submit", async (e) => {
   e.preventDefault();
   const f = new FormData(e.target), msg = $("mensaje");
+  limpiarErrores();
+  msg.textContent = "";
   const profesional = estado.profesional?.id ?? estado.hora.profesionales[0];
   $("enviar").disabled = true;
   const r = await fetch("/api/citas/", {
@@ -99,9 +157,19 @@ $("form-cita").addEventListener("submit", async (e) => {
     e.target.reset(); estado.hora = null; actualizarResumen();
   } else {
     msg.className = "error";
-    msg.textContent = data.error || "No se pudo agendar.";
+    mostrarErrores(data);
     cargarHoras();
   }
 });
+
+for (const campo of ["nombre", "rut", "telefono", "email"]) {
+  const input = document.querySelector(`[name="${campo}"]`);
+  input.addEventListener("input", () => {
+    input.setCustomValidity("");
+    if (input.validity.valid) input.removeAttribute("aria-invalid");
+    else input.setAttribute("aria-invalid", "true");
+    $(`error-${campo}`).textContent = "";
+  });
+}
 
 cargarServicios();

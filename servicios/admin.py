@@ -16,7 +16,9 @@ class ServicioAdmin(admin.ModelAdmin):
 
 @admin.register(Profesional)
 class ProfesionalAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "rut", "activo")
+    list_display = ("nombre", "rut", "usuario", "activo")
+    list_select_related = ("usuario",)
+    autocomplete_fields = ("usuario",)
     filter_horizontal = ("servicios",)
     inlines = [HorarioInline]
 
