@@ -1,4 +1,4 @@
-// Vista de gestión diaria (solo administradores).
+// Vista de gestión diaria para el profesional autenticado.
 const $ = (id) => document.getElementById(id);
 const csrf = () => document.cookie.split("; ").find((c) => c.startsWith("csrftoken="))?.split("=")[1] ?? "";
 const hoy = () => new Date().toLocaleDateString("sv-SE");
@@ -9,7 +9,7 @@ function celda(texto) { const td = document.createElement("td"); td.textContent 
 async function cargar() {
   const r = await fetch(`/api/agenda/?fecha=${$("fecha").value}`);
   const tbody = $("citas");
-  if (!r.ok) { tbody.innerHTML = '<tr><td colspan="6">Inicia sesión como administrador.</td></tr>'; return; }
+  if (!r.ok) { tbody.innerHTML = '<tr><td colspan="6">No tienes permiso para consultar esta agenda.</td></tr>'; return; }
   const { citas } = await r.json();
   const activas = citas.filter((c) => c.estado !== "cancelada").length;
   $("resumen-dia").textContent = `${activas} cita(s) activa(s) · ${citas.length - activas} cancelada(s)`;
@@ -27,10 +27,11 @@ async function cargar() {
       const b = document.createElement("button");
       b.className = "boton boton-chico"; b.textContent = txt;
       b.onclick = async () => {
-        await fetch(`/api/citas/${c.id}/estado/`, {
+        const respuesta = await fetch(`/api/citas/${c.id}/estado/`, {
           method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
           body: JSON.stringify({ estado }),
         });
+        if (!respuesta.ok) { window.alert("No se pudo actualizar el estado de la cita."); return; }
         cargar();
       };
       acc.append(b, " ");

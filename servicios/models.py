@@ -1,10 +1,13 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
+
+from .validators import normalizar_rut, validar_telefono_chileno
 
 
 DIA_SEMANA_CHOICES = [
@@ -48,6 +51,19 @@ class Cliente(models.Model):
     email = models.EmailField(blank=True)
     telefono = models.CharField(max_length=20, blank=True)
 
+    def clean(self):
+        super().clean()
+        if self.rut:
+            try:
+                self.rut = normalizar_rut(self.rut)
+            except ValidationError as e:
+                raise ValidationError({"rut": e.messages}) from e
+        if self.telefono:
+            try:
+                validar_telefono_chileno(self.telefono)
+            except ValidationError as e:
+                raise ValidationError({"telefono": e}) from e
+
     def __str__(self):
         return self.nombre
 
@@ -55,6 +71,13 @@ class Cliente(models.Model):
 class Profesional(models.Model):
     nombre = models.CharField(max_length=150)
     rut = models.CharField(max_length=12, unique=True)
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="profesional",
+        null=True,
+        blank=True,
+    )
     servicios = models.ManyToManyField(
         Servicio,
         related_name="profesionales",

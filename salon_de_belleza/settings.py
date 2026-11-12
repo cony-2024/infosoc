@@ -73,6 +73,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'salon_de_belleza.wsgi.application'
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'gestion'
 
 
 # Database

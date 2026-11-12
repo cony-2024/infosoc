@@ -4,6 +4,12 @@
 {% block contenido %}
 <section class="gestion" id="gestion">
   <h1>Agenda del día</h1>
+  <div>Sesión de {{ profesional.nombre }}
+    <form method="post" action="{% url 'logout' %}" style="display:inline">
+      {% csrf_token %}
+      <button class="boton boton-chico" type="submit">Cerrar sesión</button>
+    </form>
+  </div>
   <div class="barra-dia">
     <button class="boton boton-chico" id="ayer" aria-label="Día anterior">←</button>
     <input type="date" id="fecha" aria-label="Fecha">
@@ -17,7 +23,6 @@
       <tbody id="citas"><tr><td colspan="6">Cargando…</td></tr></tbody>
     </table>
   </div>
-  <p><a href="/admin/servicios/">Gestionar servicios, profesionales y horarios →</a></p>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{% static 'servicios/js/gestion.js' %}"></script>{% endblock %}
