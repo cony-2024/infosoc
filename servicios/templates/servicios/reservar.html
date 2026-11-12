@@ -25,7 +25,27 @@
         <label>Nombre <input name="nombre" required autocomplete="name" aria-describedby="error-nombre"><span id="error-nombre" class="error-campo" aria-live="polite"></span></label>
         <label>Teléfono <input name="telefono" type="tel" required autocomplete="tel" pattern="(?:\+?56|0056)?[ .\-]?(?:[2-9]|\([2-9]\))(?:[ .\-]?[0-9]){8}" placeholder="+56 9 1234 5678" title="Ingresa 9 dígitos chilenos, por ejemplo 9 1234 5678 o +56 9 1234 5678." aria-describedby="error-telefono"><span id="error-telefono" class="error-campo" aria-live="polite"></span></label>
         <label>Email <input name="email" type="email" autocomplete="email" aria-describedby="error-email"><span id="error-email" class="error-campo" aria-live="polite"></span></label>
-        <label><input name="acepta_politica_privacidad" type="checkbox"> Acepto la política de privacidad.</label>
+        <div class="consentimiento">
+          <p class="consentimiento__texto" id="consentimiento-desc">
+            Usamos tu nombre, teléfono y email (si lo indicas) para gestionar tu
+            reserva y contactarte por cambios o recordatorios. No usamos tus datos
+            para publicidad.
+          </p>
+          <label class="check">
+            <input
+              type="checkbox"
+              id="acepta_politica"
+              name="acepta_politica_privacidad"
+              aria-describedby="consentimiento-desc"
+            >
+            <span class="check__caja" aria-hidden="true"></span>
+            <span class="check__texto">
+              He leído y acepto la
+              <a href="{% url 'politica_de_privacidad' %}">Política de privacidad</a>
+              de Beauty Corner. (Opcional)
+            </span>
+          </label>
+        </div>
         <p id="resumen" class="resumen" hidden></p>
         <button class="boton" id="enviar" disabled>Confirmar reserva</button>
       </form>

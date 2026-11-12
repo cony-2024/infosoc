@@ -21,6 +21,18 @@ class ApiAgendaTests(TestCase):
         call_command("seed_demo", verbosity=0)
         self.fecha = proximo_lunes().isoformat()
 
+    def test_politica_de_privacidad_publica_y_enlazada_en_reserva(self):
+        politica = self.client.get("/privacidad/")
+        reserva = self.client.get("/reservar/")
+
+        self.assertEqual(politica.status_code, 200)
+        self.assertContains(politica, "Política de privacidad")
+        self.assertContains(politica, "[Completar correo de contacto]")
+        self.assertEqual(reserva.status_code, 200)
+        self.assertContains(reserva, 'href="/privacidad/"')
+        self.assertContains(reserva, 'name="acepta_politica_privacidad"')
+        self.assertNotContains(reserva, 'name="acepta_politica_privacidad" required')
+
     def _horas(self, **extra):
         r = self.client.get("/api/disponibilidad/", {"servicio": 1, "fecha": self.fecha, **extra})
         self.assertEqual(r.status_code, 200)

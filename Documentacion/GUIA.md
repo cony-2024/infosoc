@@ -35,6 +35,7 @@ Para dar acceso a un profesional, crea una cuenta de usuario desde `/admin/auth/
 
 - Catálogo público de servicios activos, agrupado por categoría.
 - Flujo de reserva para elegir servicio, profesional opcional, fecha y hora.
+- Política de privacidad pública en `/privacidad/`, enlazada desde el formulario y el pie de página.
 - Registro de clientas por teléfono normalizado; correo opcional y consentimiento de privacidad con fecha.
 - Disponibilidad calculada en intervalos de 30 minutos, según duración del servicio, horario del profesional, reservas activas y bloqueos.
 - Citas en estado inicial `pendiente`; cada profesional puede consultar solo sus citas y confirmarlas o cancelarlas desde la gestión diaria.
@@ -47,6 +48,7 @@ Para dar acceso a un profesional, crea una cuenta de usuario desde `/admin/auth/
 |---|---|---|
 | GET | `/` | Catálogo público |
 | GET | `/reservar/` | Formulario público de reserva |
+| GET | `/privacidad/` | Política de privacidad |
 | GET | `/ingresar/` | Inicio de sesión para profesionales |
 | POST | `/salir/` | Cierra la sesión |
 | GET | `/gestion/` | Agenda diaria del profesional autenticado |
@@ -65,7 +67,7 @@ El formulario envía la creación de reservas como JSON y usa protección CSRF. 
 - **Nombre y teléfono:** obligatorios. El teléfono se valida como número chileno de nueve dígitos y se almacena normalizado con prefijo `+56`; se acepta, por ejemplo, `9 1234 5678` o `+56 9 1234 5678`. Es el identificador de la clienta.
 - **Correo:** opcional; los valores vacíos se guardan como `NULL`. Debe tener formato válido y es único sin distinguir mayúsculas/minúsculas.
 - **RUT de clientas:** ya no se recopila ni almacena. El RUT de profesionales no cambia.
-- **Consentimiento:** la casilla de privacidad es opcional; si se marca se guarda la fecha y hora. La base impide registrar una aceptación sin fecha.
+- **Consentimiento:** la casilla de privacidad es opcional; si se marca se guarda la fecha y hora. La base impide registrar una aceptación sin fecha. La política muestra campos del responsable y contacto pendientes de completar.
 - Los errores se asocian al campo correspondiente en el formulario. La API repite las validaciones para no depender del navegador.
 - La respuesta pública al crear una cita no devuelve datos del cliente. La agenda devuelve nombre y teléfono, sin correo. El panel Django Admin permite a administradores ver los datos del cliente y su estado de consentimiento.
 - Las contraseñas de acceso se gestionan con el sistema de autenticación de Django; no se almacenan en el modelo `Profesional`. Crea cada cuenta de usuario desde Django Admin y asígnala a un solo profesional. No reutilices cuentas entre profesionales.
