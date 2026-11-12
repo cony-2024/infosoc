@@ -239,3 +239,37 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .est-cancelada td { opacity: .55; text-decoration: line-through; }
 .chip { padding: .15rem .6rem; border-radius: 99px; font-size: .85rem; font-weight: 600; background: #eee; }
 .chip.pendiente { background: #fff1c2; } .chip.confirmada { background: #cfeedb; } .chip.cancelada { background: #f6d0d0; }
+
+/* ===== Móvil ===== */
+.portada-texto .boton { margin: 0 0.75rem 0.75rem 0; }
+
+@media (max-width: 600px) {
+  .barra {
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .marca img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .barra nav {
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 0.9rem;
+    font-size: 0.9rem;
+  }
+
+  .boton-chico {
+    padding: 0.4rem 1rem;
+    white-space: nowrap;
+  }
+
+  .portada,
+  .servicios,
+  .ubicacion {
+    padding-inline: 1.5rem;
+  }
+}
