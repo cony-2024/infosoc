@@ -25,9 +25,9 @@
     <p class="pie-marca">Beauty Corner</p>
     <p>Manos y pies</p>
     <p><a href="https://wa.me/56936507435">WhatsApp</a> &nbsp;|&nbsp;
-       <a href="https://www.instagram.com/beautycornerlaserena/">Instagram @beautycornerlaserena</a>
-       &nbsp;|&nbsp; <a href="{% url 'politica_de_privacidad' %}">Política de privacidad</a>
-       &nbsp;|&nbsp; <a href="{% url 'login' %}">Acceso profesionales</a></p>
+      <a href="https://www.instagram.com/beautycornerlaserena/">Instagram @beautycornerlaserena</a>
+      &nbsp;|&nbsp; <a href="{% url 'politica_de_privacidad' %}">Política de privacidad</a>
+      &nbsp;|&nbsp; <a href="{% url 'login' %}?next={% url 'admin:index' %}">Acceso profesionales</a></p>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

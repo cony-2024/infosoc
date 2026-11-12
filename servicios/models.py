@@ -26,7 +26,13 @@ class Servicio(models.Model):
     class Categoria(models.TextChoices):
         MANOS = "manos", "Manos"
         PIES = "pies", "Pies"
+        FACIAL = "facial", "Facial"
+        CORPORAL = "corporal", "Corporal"
+        DEPILACION = "depilacion", "Depilación"
+        CEJAS_PESTANAS = "cejas_pestanas", "Cejas y Pestañas"
+        CABELLO = "cabello", "Cabello"
         OTROS = "otros", "Otros"
+
 
     categoria = models.CharField(max_length=20, choices=Categoria.choices, default=Categoria.OTROS)
     nombre = models.CharField(max_length=100)

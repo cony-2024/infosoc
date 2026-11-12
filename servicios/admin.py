@@ -38,3 +38,7 @@ class CitaAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BloqueoHorario)
+
+admin.site.site_header = "Beauty Corner · Administración"
+admin.site.site_title = "Beauty Corner"
+admin.site.index_title = "Panel de gestión"

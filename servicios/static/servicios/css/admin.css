@@ -1,0 +1,58 @@
+:root {
+  --rosa-claro: #FDE4E6;
+  --blanco-hueso: #FBFAF8;
+  --taupe: #C4A096;
+  --grafito: #2B2C2E;
+
+  --primary: var(--taupe);
+  --secondary: var(--grafito);
+  --accent: var(--rosa-claro);
+  --primary-fg: var(--grafito);
+
+  --body-fg: var(--grafito);
+  --body-bg: var(--blanco-hueso);
+  --body-quiet-color: #5d5352;
+  --body-medium-color: #3d3a3b;
+  --body-loud-color: #000;
+
+  --header-bg: var(--grafito);
+  --header-color: var(--rosa-claro);
+  --header-branding-color: var(--rosa-claro);
+  --header-link-color: var(--rosa-claro);
+
+  --breadcrumbs-bg: var(--taupe);
+  --breadcrumbs-fg: var(--grafito);
+  --breadcrumbs-link-fg: var(--grafito);
+
+  --link-fg: #7a5448;
+  --link-hover-color: var(--grafito);
+  --link-selected-fg: var(--grafito);
+
+  --hairline-color: #eadfda;
+  --border-color: var(--taupe);
+  --darkened-bg: var(--rosa-claro);
+  --selected-bg: var(--rosa-claro);
+  --selected-row: var(--rosa-claro);
+
+  --button-bg: var(--grafito);
+  --button-fg: var(--blanco-hueso);
+  --button-hover-bg: #4a4b4e;
+  --default-button-bg: var(--grafito);
+  --default-button-hover-bg: #4a4b4e;
+  --object-tools-bg: var(--grafito);
+  --object-tools-hover-bg: #4a4b4e;
+
+  --font-family-primary: "Open Sans", system-ui, sans-serif;
+}
+
+h1, h2, h3, #site-name, .module caption, .module h2 {
+  font-family: "Montserrat", sans-serif;
+}
+
+#site-name a { font-weight: 700; letter-spacing: .02em; }
+
+#header { border-bottom: 3px solid var(--taupe); }
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  border-radius: 999px;
+}
