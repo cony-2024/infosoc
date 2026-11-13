@@ -18,8 +18,9 @@
       <a href="{% url 'index' %}#servicios">Servicios</a>
       <a href="{% url 'trabajos' %}">Trabajos</a>
       <a href="{% url 'index' %}#ubicacion">Ubicación</a>
-      <a class="boton boton-chico" href="{% url 'reservar' %}">Reservar hora</a>
     </nav>
+
+    <a class="boton boton-chico" href="{% url 'reservar' %}">Reservar hora</a>
   </header>
   <main>{% block contenido %}{% endblock %}</main>
   <footer class="pie" id="contacto">
