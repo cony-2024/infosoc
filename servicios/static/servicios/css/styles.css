@@ -213,6 +213,8 @@ a { color: inherit; }
 /* ===== Reserva ===== */
 .reserva, .gestion { max-width: 920px; margin: 0 auto; padding: 2rem clamp(1.25rem, 5vw, 2rem) 4rem; }
 .reserva h1, .gestion h1 { font-family: var(--fuente-titulos); margin-bottom: 1.5rem; }
+.gestion-encabezado { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+.gestion-encabezado h1 { margin-bottom: 0.25rem; }
 .pasos { list-style: none; padding: 0; display: grid; gap: 2rem; }
 .pasos h2 { font-family: var(--fuente-titulos); font-size: 1.15rem; margin-bottom: .75rem; }
 .opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: .75rem; }
@@ -315,6 +317,13 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .politica .boton { margin-top: 1rem; }
 
 /* ===== Gestión ===== */
+.gestion-superior {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem clamp(1.25rem, 5vw, 4rem);
+}
 .barra-dia { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
 .tabla-scroll { overflow-x: auto; }
 .tabla { width: 100%; border-collapse: collapse; background: #fff; }
