@@ -383,3 +383,38 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   #fecha { display: none; }
   .fecha-movil { display: flex; }
 }
+
+/* ===== Servicios en celular: categorías y menú ===== */
+.servicios-movil { display: grid; gap: .75rem; }
+
+.cats-movil { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.cat-chip {
+  font: inherit;
+  font-weight: 600;
+  padding: .55rem 1rem;
+  min-height: 44px;
+  background: #fff;
+  color: inherit;
+  border: 2px solid var(--taupe);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cat-chip.activa {
+  background: var(--grafito);
+  color: #fff;
+  border-color: var(--grafito);
+}
+
+.select-servicio {
+  width: 100%;
+  font: inherit;
+  padding: .65rem .8rem;
+  min-height: 44px;
+  background: #fff;
+  border: 2px solid var(--taupe);
+  border-radius: 10px;
+}
+
+.seleccion-movil { font-size: .9rem; font-weight: 600; }
