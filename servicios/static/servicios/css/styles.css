@@ -429,3 +429,46 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 .seleccion-movil { font-size: .9rem; font-weight: 600; }
+
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.marca {
+  flex-shrink: 0; /* Protege el logo para que el menú no se monte encima */
+}
+
+.marca img {
+  display: block;
+  border-radius: 50%;
+}
+
+
+
+/* borrar si no funciona Convierte el menú en un slide horizontal */
+.barra nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto; /* Permite deslizar con el dedo hacia los lados */
+  white-space: nowrap; /* Evita que los enlaces bajen de línea */
+  -webkit-overflow-scrolling: touch; /* Deslizamiento suave en iPhone y Android */
+  scrollbar-width: none; /* Oculta la barra de scroll en Firefox */
+  padding-right: 4px; /* Da un pequeño respiro al final del slide */
+}
+
+/* Oculta la barra de scroll en Chrome, Safari y móviles */
+.barra nav::-webkit-scrollbar {
+  display: none;
+}
+
+.barra nav a {
+  flex-shrink: 0; /* Mantiene el tamaño real de cada enlace y botón */
+}
