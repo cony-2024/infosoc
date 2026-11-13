@@ -14,6 +14,7 @@ urlpatterns = [
     path("salir/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     # Páginas
     path("", views.index, name="index"),
+    path("trabajos/", views.trabajos, name="trabajos"),
     path("reservar/", views.reservar, name="reservar"),
     path("privacidad/", views.politica_de_privacidad, name="politica_de_privacidad"),
     path("gestion/", views.gestion, name="gestion"),

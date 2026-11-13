@@ -29,6 +29,22 @@
       {% empty %}<p class="nota">Aún no hay servicios cargados.</p>{% endfor %}
     </section>
 
+        {% if destacados %}
+    <section class="galeria-seccion" id="trabajos">
+      <h2>Nuestros trabajos</h2>
+      <p class="nota">Algunos de los diseños que hemos hecho.</p>
+      <div class="galeria">
+        {% for t in destacados %}
+        <figure class="trabajo">
+          <img src="{{ t.imagen_url }}" alt="{{ t.titulo }}" loading="lazy">
+          <figcaption>{{ t.titulo }}</figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      <p class="galeria-mas"><a class="boton" href="{% url 'trabajos' %}">Ver todos los trabajos</a></p>
+    </section>
+    {% endif %}
+
     <section class="ubicacion" id="ubicacion">
       <h2>Dónde estamos</h2>
       <p>Balmaceda 1602, La Serena</p>

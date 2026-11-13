@@ -1,0 +1,28 @@
+{% extends "servicios/base.html" %}
+{% block titulo %}Trabajos | Beauty Corner{% endblock %}
+{% block contenido %}
+    <section class="galeria-seccion">
+      <h1>Nuestros trabajos</h1>
+      <p class="nota">Diseños realizados en Beauty Corner. ¿Te gustó alguno? Cuéntanos cuál quieres al reservar.</p>
+      {% if filtros %}
+      <nav class="filtros" aria-label="Filtrar por categoría">
+        <a class="filtro{% if not elegida %} activo{% endif %}" href="{% url 'trabajos' %}">Todos</a>
+        {% for valor, nombre in filtros %}
+        <a class="filtro{% if elegida == valor %} activo{% endif %}" href="{% url 'trabajos' %}?categoria={{ valor }}">{{ nombre }}</a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+      <div class="galeria">
+        {% for t in trabajos %}
+        <figure class="trabajo">
+          <img src="{{ t.imagen_url }}" alt="{{ t.titulo }}" loading="lazy">
+          <figcaption>
+            <strong>{{ t.titulo }}</strong>
+            {% if t.descripcion %}<span>{{ t.descripcion }}</span>{% endif %}
+          </figcaption>
+        </figure>
+        {% empty %}<p class="nota">Pronto subiremos nuestros trabajos.</p>{% endfor %}
+      </div>
+      <p class="galeria-mas"><a class="boton" href="{% url 'reservar' %}">Reservar hora</a></p>
+    </section>
+{% endblock %}

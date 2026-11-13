@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.functions import Lower
@@ -45,7 +45,33 @@ class Servicio(models.Model):
     def __str__(self):
         return self.nombre
 
+class Trabajo(models.Model):
+    titulo = models.CharField(max_length=100)
+    categoria = models.CharField(
+        max_length=20,
+        choices=Servicio.Categoria.choices,
+        default=Servicio.Categoria.OTROS,
+    )
+    descripcion = models.TextField(blank=True)
+    imagen_url = models.URLField(
+        max_length=500,
+        validators=[URLValidator(schemes=["https"])],
+        help_text="Enlace https de la foto (por ejemplo, de un bucket público de Supabase Storage).",
+    )
+    activo = models.BooleanField(default=True)
+    orden = models.PositiveSmallIntegerField(
+        default=0, help_text="Los números más bajos aparecen primero."
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ("orden", "-creado_en")
+        verbose_name = "trabajo"
+        verbose_name_plural = "trabajos"
+
+    def __str__(self):
+        return self.titulo
+    
 class Cliente(models.Model):
     nombre = models.CharField(max_length=150)
     telefono = models.CharField(
