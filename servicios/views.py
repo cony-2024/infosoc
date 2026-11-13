@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .models import Profesional, Servicio
+from .models import Profesional, Servicio, Trabajo
 
 
 def index(request):
@@ -11,8 +11,26 @@ def index(request):
     grupos = {}
     for s in Servicio.objects.filter(activo=True).order_by("categoria", "nombre"):
         grupos.setdefault(s.get_categoria_display(), []).append(s)
-    return render(request, "servicios/index.html", {"grupos": grupos})
+    destacados = Trabajo.objects.filter(activo=True)[:6]
+    return render(request, "servicios/index.html", {"grupos": grupos, "destacados": destacados})
 
+
+def trabajos(request):
+    """Galería pública de trabajos, con filtro opcional por categoría."""
+    categorias = dict(Servicio.Categoria.choices)
+    elegida = request.GET.get("categoria", "")
+    lista = Trabajo.objects.filter(activo=True)
+    if elegida in categorias:
+        lista = lista.filter(categoria=elegida)
+    else:
+        elegida = ""
+    usadas = Trabajo.objects.filter(activo=True).values_list("categoria", flat=True).distinct()
+    filtros = [(valor, categorias[valor]) for valor in categorias if valor in set(usadas)]
+    return render(
+        request,
+        "servicios/trabajos.html",
+        {"trabajos": lista, "filtros": filtros, "elegida": elegida},
+    )
 
 @ensure_csrf_cookie
 def reservar(request):
