@@ -8,7 +8,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path(
         "ingresar/",
-        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        auth_views.LoginView.as_view(
+            template_name="registration/login.html",
+            redirect_authenticated_user=True,
+        ),
         name="login",
     ),
     path("salir/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),

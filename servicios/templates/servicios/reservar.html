@@ -17,6 +17,13 @@
       <h2>3. Fecha y hora</h2>
       <label for="fecha">Fecha</label>
       <input type="date" id="fecha" disabled>
+    
+      <div class="fecha-movil" role="group" aria-label="Fecha">
+        <select id="sel-dia" aria-label="Día" disabled></select>
+        <select id="sel-mes" aria-label="Mes" disabled></select>
+        <select id="sel-anio" aria-label="Año" disabled></select>
+      </div>
+
       <div id="horas" class="horas" aria-live="polite"><p class="nota">Elige servicio y fecha.</p></div>
     </li>
     <li>
@@ -53,5 +60,8 @@
     </li>
   </ol>
 </section>
+{% block scripts %}
+<script src="{% static 'servicios/js/reservar.js' %}"></script>
+<script src="{% static 'servicios/js/fecha-movil.js' %}"></script>
 {% endblock %}
-{% block scripts %}<script src="{% static 'servicios/js/reservar.js' %}"></script>{% endblock %}
+{% endblock %}

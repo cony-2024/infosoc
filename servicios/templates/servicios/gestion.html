@@ -2,13 +2,20 @@
 {% load static %}
 {% block titulo %}Gestión diaria | Beauty Corner{% endblock %}
 {% block contenido %}
+<div class="gestion-superior">
+  <a class="boton boton-chico" href="{% url 'admin:index' %}">Administración</a>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button class="boton boton-chico" type="submit">Cerrar sesión</button>
+  </form>
+</div>
+
 <section class="gestion" id="gestion">
-  <h1>Agenda del día</h1>
-  <div>Sesión de {{ profesional.nombre }}
-    <form method="post" action="{% url 'logout' %}" style="display:inline">
-      {% csrf_token %}
-      <button class="boton boton-chico" type="submit">Cerrar sesión</button>
-    </form>
+  <div class="gestion-encabezado">
+    <div>
+      <h1>Agenda del día</h1>
+      <p>Sesión de {{ profesional.nombre }}</p>
+    </div>
   </div>
   <div class="barra-dia">
     <button class="boton boton-chico" id="ayer" aria-label="Día anterior">←</button>

@@ -213,6 +213,8 @@ a { color: inherit; }
 /* ===== Reserva ===== */
 .reserva, .gestion { max-width: 920px; margin: 0 auto; padding: 2rem clamp(1.25rem, 5vw, 2rem) 4rem; }
 .reserva h1, .gestion h1 { font-family: var(--fuente-titulos); margin-bottom: 1.5rem; }
+.gestion-encabezado { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+.gestion-encabezado h1 { margin-bottom: 0.25rem; }
 .pasos { list-style: none; padding: 0; display: grid; gap: 2rem; }
 .pasos h2 { font-family: var(--fuente-titulos); font-size: 1.15rem; margin-bottom: .75rem; }
 .opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: .75rem; }
@@ -315,6 +317,13 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .politica .boton { margin-top: 1rem; }
 
 /* ===== Gestión ===== */
+.gestion-superior {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem clamp(1.25rem, 5vw, 4rem);
+}
 .barra-dia { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
 .tabla-scroll { overflow-x: auto; }
 .tabla { width: 100%; border-collapse: collapse; background: #fff; }
@@ -358,7 +367,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   }
 }
 
-
 /* Galería de trabajos */
 .galeria-seccion { padding: 2.5rem 1.25rem; max-width: 1100px; margin: 0 auto; }
 .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
@@ -370,3 +378,54 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .filtros { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
 .filtro { padding: .4rem 1rem; border: 2px solid var(--taupe); border-radius: 99px; text-decoration: none; color: var(--grafito); font-weight: 600; font-size: .9rem; }
 .filtro.activo { background: var(--grafito); border-color: var(--grafito); color: var(--blanco-hueso); }
+.fecha-movil { display: none; gap: .5rem; }
+
+.fecha-movil select {
+  flex: 1;
+  font: inherit;
+  padding: .65rem .8rem;
+  border: 2px solid var(--taupe);
+  border-radius: 10px;
+  background: #fff;
+  min-height: 44px;
+}
+
+@media (pointer: coarse) {
+  #fecha { display: none; }
+  .fecha-movil { display: flex; }
+}
+
+/* ===== Servicios en celular: categorías y menú ===== */
+.servicios-movil { display: grid; gap: .75rem; }
+
+.cats-movil { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.cat-chip {
+  font: inherit;
+  font-weight: 600;
+  padding: .55rem 1rem;
+  min-height: 44px;
+  background: #fff;
+  color: inherit;
+  border: 2px solid var(--taupe);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cat-chip.activa {
+  background: var(--grafito);
+  color: #fff;
+  border-color: var(--grafito);
+}
+
+.select-servicio {
+  width: 100%;
+  font: inherit;
+  padding: .65rem .8rem;
+  min-height: 44px;
+  background: #fff;
+  border: 2px solid var(--taupe);
+  border-radius: 10px;
+}
+
+.seleccion-movil { font-size: .9rem; font-weight: 600; }

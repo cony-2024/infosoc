@@ -219,3 +219,24 @@ class ApiAgendaTests(TestCase):
         Profesional.objects.filter(pk=1).update(usuario=usuario, activo=False)
         self.client.login(username=usuario.username, password="una-clave-segura-123")
         self.assertEqual(self.client.get("/gestion/").status_code, 403)
+
+    def test_gestion_enlaza_al_admin(self):
+        usuario = User.objects.create_user("profesional", password="una-clave-segura-123")
+        Profesional.objects.filter(pk=1).update(usuario=usuario)
+        self.client.login(username=usuario.username, password="una-clave-segura-123")
+
+        respuesta = self.client.get("/gestion/")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'href="/admin/"')
+        self.assertContains(respuesta, "Administración")
+
+    def test_profesional_autenticado_alcanza_gestion_sin_reingresar(self):
+        usuario = User.objects.create_user("profesional", password="una-clave-segura-123")
+        Profesional.objects.filter(pk=1).update(usuario=usuario)
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get("/ingresar/?next=/gestion/")
+
+        self.assertRedirects(respuesta, "/gestion/", fetch_redirect_response=False)
+        self.assertEqual(self.client.get("/gestion/").status_code, 200)

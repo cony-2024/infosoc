@@ -16,16 +16,100 @@ function boton(texto, sub, activo, onclick) {
   return b;
 }
 
+// ===== Servicios en celular: categorías + menú desplegable =====
+const esMovil = window.matchMedia("(pointer: coarse)").matches;
+// Categorías tal como están en la base de datos (el orden es el de los botones)
+const CATEGORIAS = { depilacion: "Depilación", manos: "Manos", pies: "Pies", otros: "Otros" };
+const ORDEN_CATEGORIAS = Object.values(CATEGORIAS);
+let reflejarMovil = () => {};
+
+const sinTildes = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// Usa la categoría que viene del backend (s.categoria), venga como código o como
+// texto. Solo si el servicio no la trae, la deduce del nombre.
+function categoriaDe(s) {
+  if (s.categoria) {
+    return CATEGORIAS[sinTildes(String(s.categoria))] ?? String(s.categoria);
+  }
+  const n = s.nombre.toLowerCase();
+  if (/promo/.test(n)) return CATEGORIAS.otros;
+  if (/pedicur/.test(n)) return CATEGORIAS.pies;
+  if (/manicur|kapping|soft gel|polygel|rubber|extension/.test(n)) return CATEGORIAS.manos;
+  if (/abdomen|axila|bozo|brazo|espalda|pierna|rebaje|depil/.test(n)) return CATEGORIAS.depilacion;
+  return CATEGORIAS.otros;
+}
+
+function dibujarServiciosMovil(cont, servicios) {
+  const porCategoria = {};
+  servicios.forEach((s) => (porCategoria[categoriaDe(s)] ??= []).push(s));
+  const indice = (c) => (ORDEN_CATEGORIAS.includes(c) ? ORDEN_CATEGORIAS.indexOf(c) : ORDEN_CATEGORIAS.length);
+  const categorias = Object.keys(porCategoria).sort((a, b) => indice(a) - indice(b));
+
+  const chips = document.createElement("div");
+  chips.className = "cats-movil";
+  const select = document.createElement("select");
+  select.className = "select-servicio";
+  select.setAttribute("aria-label", "Servicio");
+  const elegido = document.createElement("p");
+  elegido.className = "seleccion-movil";
+
+  const mostrar = (s) => {
+    elegido.textContent = s ? `Elegido: ${s.nombre} · ${s.duracion_minutos} min · ${clp(s.precio)}` : "";
+  };
+
+  function llenar(cat, actual) {
+    chips.querySelectorAll(".cat-chip").forEach((b) => b.classList.toggle("activa", b.dataset.cat === cat));
+    select.replaceChildren();
+    const guia = new Option("Elige un servicio", "");
+    guia.disabled = true;
+    guia.hidden = true;
+    select.add(guia);
+    porCategoria[cat].forEach((s) => select.add(new Option(`${s.nombre} · ${clp(s.precio)}`, s.id)));
+    if (actual) select.value = String(actual.id);
+    else select.selectedIndex = 0;
+  }
+
+  categorias.forEach((cat) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "cat-chip";
+    b.dataset.cat = cat;
+    b.textContent = cat;
+    b.onclick = () => llenar(cat, estado.servicio && categoriaDe(estado.servicio) === cat ? estado.servicio : null);
+    chips.append(b);
+  });
+
+  select.onchange = () => {
+    const s = servicios.find((x) => String(x.id) === select.value);
+    if (!s) return;
+    mostrar(s);
+    elegirServicio(s);
+  };
+
+  reflejarMovil = (s) => { llenar(categoriaDe(s), s); mostrar(s); };
+
+  cont.className = "servicios-movil";
+  cont.replaceChildren(chips, select, elegido);
+  llenar(categorias[0], null);
+}
+
 async function cargarServicios() {
   const { servicios } = await get("/api/servicios/");
   estado.servicios = servicios;
   const cont = $("servicios");
-  cont.replaceChildren(...servicios.map((s) =>
-    boton(s.nombre, `${s.duracion_minutos} min · ${clp(s.precio)}`, estado.servicio?.id === s.id, () => elegirServicio(s))));
+  if (esMovil) {
+    dibujarServiciosMovil(cont, servicios);
+  } else {
+    cont.replaceChildren(...servicios.map((s) =>
+      boton(s.nombre, `${s.duracion_minutos} min · ${clp(s.precio)}`, estado.servicio?.id === s.id, () => elegirServicio(s))));
+  }
   const pre = Number($("app").dataset.servicio);
   if (pre && !estado.servicio) {
     const s = servicios.find((x) => x.id === pre);
-    if (s) elegirServicio(s);
+    if (s) {
+      elegirServicio(s);
+      if (esMovil) reflejarMovil(s);
+    }
   }
 }
 
